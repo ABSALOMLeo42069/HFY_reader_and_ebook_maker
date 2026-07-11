@@ -1,407 +1,481 @@
-# HFY NEKROCODEXXX — r/HFY Story Organizer & Reader (Alpha v0.45)
+# HFY NEKROCODEXXX — Cyberdeck
 
-**⚠️ This is alpha (v0.45). Fork it, edit it, use it any way you like, but eemember, this is not a downloader. Expect bugs, missing features, and breaking changes.**
-
-A cyberpunk-themed web application for organizing and reading HFY (Humanity, Fuck Yeah!) stories from Reddit's r/HFY subreddit. 
-
-**This is a reader and organizer, NOT a downloader.** Chapter text content is cached in-browser for offline reading during your session only — it is erased on every restart. Chapter links and series data persist, but the actual story text does not.
+A standalone reader for r/HFY fiction. Runs entirely on your device — no cloud services, no tracking, no external dependencies beyond Reddit's public content endpoints.
 
 ---
 
-## What Is This?
-
-HFY NEKROCODEXXX is a self-hosted web application that indexes the entire r/HFY story archive and provides a clean, organized interface for reading stories directly from Reddit.
-
-### Key principle: Reading = Supporting
-
-Every time you read a chapter through this app, the app fetches the chapter content directly from Reddit's servers. This means:
-
-- **Reddit sees your visit** — Each chapter read counts as a view on the original Reddit post
-- **Upvote buttons work** — Each chapter has upvote and downvote buttons that link directly to the Reddit post, making it easy to upvote the stories you enjoy
-- **Authors get credit** — Unlike offline readers, this app ensures authors get the engagement they deserve
-
-The app shows upvote counts for each chapter (fetched when you read or interact with the chapter), and the total series upvote count is displayed in the series header. Upvote counts are erased on restart and re-fetched as you read — keeping the data fresh.
-
-### Features
-
-- **Browse 5,533 series** with sorting by score, chapter count, word count, and alphabetical order
-- **Read chapters** in a full-screen reader with 22 themes, 27 fonts, infinite scroll, and automatic read tracking
-- **Upvote integration** — Upvote/downvote buttons on every chapter link directly to Reddit, and upvote counts are displayed per-chapter and as a series total
-- **Chapter discovery** via 8 methods: RSS crawling, Wayback Machine, HFY Foundation, Reddit JSON API, OAuth crawl, WebSocket parser, next-chapter link following, and Reddit search
-- **Wiki link indicators** showing which sources have indexed each series (r/HFY wiki, HFY Foundation, r/Sexyspacebabes)
-- **Library** with favorites, reading progress tracking, and resume-reading
-- **Custom series adder** — Add your own series with chapters via Reddit URLs
-- **Chapter management** — Sort by chapter number, reorder, detect gaps, search Reddit for missing chapters, delete chapters you've added
-- **PWA installable** on any device
-- **Android APK** with embedded Node.js server
-
-### What gets erased on restart
-
-- ❌ Chapter text content (story text cached in browser)
-- ❌ Chapter upvote counts (re-fetched as you read)
-- ❌ Cached chapter content in IndexedDB
-
-### What persists across restarts
-
-- ✅ Series list (5,533 baked-in series)
-- ✅ Chapter links (titles + Reddit URLs)
-- ✅ Library (favorites, reading progress)
-- ✅ Read tracking (which chapters you've read)
-- ✅ Settings (themes, fonts, background images)
-- ✅ URL overrides (custom wiki URLs)
-- ✅ Custom series you've added
-
-### Important: This Is NOT a Downloader
-
-This application does NOT include:
-
-- ❌ Chapter downloading (TXT/EPUB/PDF)
-- ❌ File export or merge functionality
-- ❌ Bulk download queues
-- ❌ Save-to-device features
-- ❌ Any downloader integration
-
-**If you are considering forking this project:** Please do NOT add downloading, exporting, or file-saving features. The r/HFY community relies on Reddit engagement (upvotes, comments, views) to sustain its writers. Tools that extract content from Reddit reduce engagement and directly harm the community by discouraging authors from continuing their stories. Adding download features to this app would cause **grave and severe harm** to the HFY community.
+![Version](https://img.shields.io/badge/version-v250fx4-FF003C?style=for-the-badge)
+![Platform](https://img.shields.io/badge/platform-Android%20%7C%20Windows%20%7C%20Web-00FFF0?style=for-the-badge)
+![Chapters](https://img.shields.io/badge/chapters-72%2C248-FFE600?style=for-the-badge)
+![Series](https://img.shields.io/badge/series-5%2C393-9D00FF?style=for-the-badge)
 
 ---
 
-## How It Was Built
+## Overview
 
-### Web Application
+HFY NEKROCODEXXX is a self-contained reading application for fiction published on Reddit's r/HFY subreddit. It is designed for users who prefer a dedicated long-form reading experience over the mobile Reddit client, which is poorly suited to multi-chapter serial fiction.
 
-The webapp is built with Next.js 16 (standalone output mode) using TypeScript, React 19, and Tailwind CSS 4. The UI uses a custom cyberpunk design system with:
+The application runs a local Node.js server on the user's device. A React-based frontend is served to a WebView (on Android), a Chromium app window (on Windows), or any modern browser (webapp mode). All user data — including the library, reading progress, favorites, downloaded chapters, and cached upvote scores — is stored locally on the device. No data is transmitted to any external server except when fetching chapter content directly from Reddit.
 
-- Zustand for state management (settings, library, navigation, URL overrides)
-- Framer Motion for animations
-- shadcn/ui (new-york style) as the component foundation
-- IndexedDB for client-side caching of chapter content (erased on restart)
-- Prisma + SQLite for server-side user data
+The catalog of 5,393 series containing 72,248 chapters is bundled with the application and loads into memory at startup. This allows immediate browsing, searching, and sorting without any network connection. An internet connection is required only when fetching chapter content or upvote data from Reddit.
 
-The series data (5,533 series, 72,248 chapters) is baked into 22 TypeScript chunk files totaling ~14MB, parsed from CSV/JSON exports of the r/HFY wiki and HFY Foundation index. Each series entry includes title, author, chapter list (title + Reddit URL + post ID), and wiki URLs for r/HFY, HFY Foundation, and r/Sexyspacebabes.
-
-The Reddit integration uses a tiered fallback system:
-1. User OAuth (600 QPM, single account)
-2. App-only OAuth (100 QPM, anonymous)
-3. RedDownloader (authless .json API)
-4. CORS proxy pool (386 proxies)
-5. Baked data (always available, no network needed)
-
-### Android APK
-
-The APK embeds a full Node.js runtime (Termux arm64 build) inside the app package. On launch, the app extracts the Node.js binary, shared libraries, and the Next.js server from APK assets, starts the server on 127.0.0.1:3000, and loads the webapp in a Capacitor WebView.
-
-Key details: Node.js packaged as libnode.so (W^X bypass), SQLite compiled from source with FTS5/SESSION extensions (16KB alignment for Android 15), foreground service with wake lock, splash screen with no-cors polling, `allowNavigation` for localhost WebView access.
+No accounts, sign-ups, analytics, telemetry, or advertising are present in the application.
 
 ---
 
-## How to Install and Use the Webapp
+## Legal Notice — Please Read
 
-### Prerequisites
+### Personal Use Only
 
-- Node.js 18+ (or Bun 1.3+)
-- 4GB RAM minimum (8GB recommended for building)
-- 2GB disk space for node_modules + build output
+The stories accessible through this application are the intellectual property of their original authors, published by those authors on the r/HFY subreddit. Reddit's User Agreement permits users to access and consume this content through Reddit's platform and authorized interfaces.
 
-### Windows
+This application is intended strictly for **personal, private reading**. It is not a distribution tool.
 
-1. **Install Node.js 18+** from [nodejs.org](https://nodejs.org) — choose the "LTS" version
-2. **Download the source code** (ZIP file from GitHub) and extract it to a folder, e.g., `C:\hfy-nekrocodexxx`
-3. Open **PowerShell** (press `Win + X`, then select "Windows PowerShell" or "Terminal")
-4. Navigate to the project folder:
-   ```powershell
-   cd C:\hfy-nekrocodexxx
-   ```
-5. Install dependencies:
-   ```powershell
-   npm install
-   ```
-   This will take 2-5 minutes depending on your internet speed.
-6. Build the production server:
-   ```powershell
-   npm run build
-   ```
-   This will take 3-10 minutes depending on your CPU.
-7. Start the server:
-   ```powershell
-   npm run start
-   ```
-8. Open your browser to **http://localhost:3000**
-9. The app is now running. Bookmark the URL for easy access.
+### Ebook Distribution Is Prohibited
 
-**To run in development mode** (faster startup, hot reload, but slower page loads):
-```powershell
-npm run dev
-```
-Then open **http://localhost:3000** in your browser.
+The application includes features to download chapters and merge them into EPUB or TXT files. These features exist for the convenience of the individual user — to read content offline, on e-readers, or in a preferred format.
 
-**To stop the server:** Press `Ctrl + C` in the PowerShell window.
+**You may not distribute, share, republish, sell, host, or otherwise make available any ebook or text file generated by this application.** This includes but is not limited to:
 
-**Note:** Chapter text content is cached during your session but erased when you restart the server. You'll need to re-read chapters to cache them again.
+- Uploading merged EPUBs or TXT files to file-sharing services, torrent sites, or public repositories
+- Posting downloaded chapters on other websites, forums, or social media
+- Selling or commercially exploiting any content fetched through this application
+- Republishing author content in any form without the original author's explicit written permission
 
-### Linux
+Doing so constitutes copyright infringement against the original authors and may expose you to legal liability. The authors of r/HFY stories have not granted permission for their work to be redistributed in this manner.
 
-1. **Install Node.js 18+** using your package manager:
-   ```bash
-   # Ubuntu/Debian:
-   curl -fsSL https://deb.nodesource.com/setup_18.x | sudo -E bash -
-   sudo apt install -y nodejs
-   
-   # Or using nvm (recommended):
-   curl -fsSL https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.7/install.sh | bash
-   source ~/.bashrc
-   nvm install 18
-   ```
-   
-   Alternatively, install [Bun](https://bun.sh) (faster):
-   ```bash
-   curl -fsSL https://bun.sh/install | bash
-   source ~/.bashrc
-   ```
+If you enjoy a story, support the original author by upvoting their posts on Reddit, sharing direct links to the Reddit thread, or contacting them directly regarding licensing or republication.
 
-2. **Download and extract the source code:**
-   ```bash
-   # If you downloaded a ZIP:
-   unzip hfy-nekrocodexxx.zip
-   cd hfy-nekrocodexxx
-   
-   # Or clone from GitHub:
-   git clone https://github.com/YOUR_USERNAME/hfy-nekrocodexxx.git
-   cd hfy-nekrocodexxx
-   ```
+### Disclaimer of Warranty
 
-3. Install dependencies:
-   ```bash
-   npm install        # or: bun install
-   ```
+This software is provided "as is," without warranty of any kind. The developer is not responsible for any misuse of the application, any consequences of redistributing copyrighted content, or any actions taken by Reddit or content authors against users who violate these terms.
 
-4. Build the production server:
-   ```bash
-   npm run build      # or: bun run build
-   ```
+---
 
-5. Start the server:
-   ```bash
-   npm run start      # or: bun run start
-   ```
+## Why This Application Exists
 
-6. Open your browser to **http://localhost:3000**
+Reading multi-chapter serial fiction on the Reddit mobile client is a poor experience. The official app collapses long comments, injects advertising between posts, and is not designed for sequential chapter navigation. Third-party readers typically require accounts, do not support offline reading, or are discontinued when Reddit changes its API policies.
 
-**To run in development mode:**
-```bash
-npm run dev          # or: bun run dev
-```
+HFY NEKROCODEXXX addresses these issues with:
 
-### Android (via Termux — no APK needed)
-
-You can run the full webapp on Android using Termux:
-
-1. Install **Termux** from [F-Droid](https://f-droid.org/packages/com.termux/) (do NOT use the Play Store version — it's outdated)
-2. Open Termux and run:
-   ```bash
-   pkg update && pkg install -y nodejs git
-   git clone https://github.com/YOUR_USERNAME/hfy-nekrocodexxx.git
-   cd hfy-nekrocodexxx
-   npm install
-   npm run build
-   npm run start
-   ```
-3. Open your phone's browser to **http://localhost:3000**
-4. For a full-screen experience, open Chrome → menu → "Add to Home Screen"
-
-### Android (APK)
-
-If you have the pre-built APK:
-
-1. **Enable "Install from unknown sources"** in Android Settings → Security
-2. **Install the APK** (file manager → tap the .apk file)
-3. **Open the app** — it will start the embedded server and load automatically
-4. The app works offline for browsing series lists, but chapter reading requires internet (content is fetched from Reddit on each read)
+- **Offline catalog** — the full series and chapter index is available immediately on launch.
+- **Dedicated reading view** — customizable fonts, themes, and sizing. No advertising, no collapsed comments.
+- **Local execution** — runs on the user's own hardware. No external server, no API keys to manage.
+- **Rate-limit mitigation** — multiple content retrieval strategies, including OAuth token rotation, cookie injection, browser header simulation, a CORS proxy pool, and Wayback Machine fallback.
+- **Download and merge** — chapters can be saved as EPUB or TXT for offline reading on any device (subject to the legal notice above).
+- **C-FETCH system** — batch fetching of upvote scores and chapter content, with user-controlled batch sizes.
 
 ---
 
 ## Features
 
-### Browsing
-- Sort by: Newest, Score, Chapter Count, Word Count, A-Z
-- Search by series name
-- Wiki indicator icons on each card (hardcoded, HFY Foundation, r/HFY wiki, SSB wiki, fetched live)
-- Long-press a card to add/remove from library
-- Custom series adder button (icon in sort bar)
+### Bundled Catalog
 
-### Reading
-- Infinite scroll reader with automatic chapter preloading
-- 22 reader themes (void dark, blood red, cyber blue, terminal green, etc.)
-- 27 font options (serif, cyberpunk display, monospace, custom font URL)
-- Adjustable font size, line height, and margins
-- Automatic read tracking (chapters marked as read when scrolled past 80%)
-- Swipe-to-go-back gesture (touchscreen)
-- Read progress shown on library cards
-- Chapter content fetched fresh from Reddit on each read (cached for session only)
+5,393 series with 72,248 chapters are included in the application package. This data is loaded into memory at startup and is never deleted — it serves as the baseline against which user-imported or crawled chapter lists are merged. The catalog remains browsable even if Reddit is unavailable.
 
-### Upvote Integration
-- Upvote count displayed to the left of upvote/downvote buttons on each chapter
-- Upvote/downvote buttons (18px) link directly to the Reddit post
-- Total series upvote count shown in series header (sum of all chapter scores)
-- Scores fetched when reading or interacting with chapters
-- Scores erased on restart and re-fetched as you read
+### Reader Interface
 
-### Chapter Discovery (8 methods)
-1. **Cache** — Load from IndexedDB (instant, but empty on first run)
-2. **Wayback Machine** — Sync from archive.org snapshots
-3. **HFY Foundation** — Search community index
-4. **Wayback Crawl** — Crawl archived Reddit pages
-5. **Reddit JSON API** — Crawl via JSON method
-6. **OAuth Crawl** — Authenticated crawl
-7. **WebSocket Parser** — Real-time chapter streaming
-8. **Chapter Discovery Engine** — Follow "next chapter" links via RSS
+The reading view is designed for long-form fiction consumption:
 
-### Chapter Management
-- **GAPS** — Detect missing chapter numbers in the sequence
-- **SORT** — Sort chapters by extracted number (Part N, Chapter N) while keeping unnumbered chapters in place
-- **REORDER** — Move chapters up/down or type a position number to jump
-- **DELETE** — Long-press a chapter to delete it from the series (doesn't affect the Reddit post)
-- **Reddit Chapter Search** — Search r/HFY for chapters by name, filter duplicates, sort by name or number
-- **URL Overrides** — Long-press any wiki icon to edit its URL
+- Adjustable font size (3px to 48px)
+- Font family selection (monospace, serif, sans-serif, or custom upload)
+- Color themes (void_dark default, plus fully custom background, text, and accent colors)
+- Separate app-level and reader-level theme configuration
+- Swipe navigation between chapters
+- Preloading of adjacent chapters for smooth transitions
+- Automatic progress tracking
 
-### Reddit Integration
-- **Quick Connect** — Anonymous app-only OAuth (100 QPM, no login needed)
-- **Single Account Login** — Connect one Reddit account for 600 QPM
-- **In-App Browser** — Browse Reddit logged-in via proxy
+### C-FETCH (Content Fetching)
 
-### Customization
-- 25 app themes
-- 23 built-in background images with rotation
-- Custom background image upload (multiple images supported)
-- Scanline overlay, glitch effect, glow intensity controls
-- PWA installable with custom app icon
+C-FETCH is the mechanism by which chapter content and upvote scores are retrieved from Reddit. Unfetched chapters display a skull icon; clicking it initiates a fetch for that chapter.
 
----
+The application employs a multi-strategy approach, attempting each method in sequence until one succeeds:
 
-## Tech Stack
+1. **Cookie-based fetch** — uses injected Reddit session cookies to access authenticated `.json` endpoints
+2. **Browser simulation** — sends complete Chrome browser headers (Sec-Fetch-*, Sec-Ch-Ua, Accept-Encoding) to mimic a real browser visit
+3. **Direct RSS** — Reddit's `.rss` Atom feeds are not subject to the same IP-level restrictions as `.json` endpoints
+4. **OAuth JSON** — uses OAuth Bearer tokens from connected Reddit accounts to access `oauth.reddit.com`
+5. **CORS proxy pool** — 386 public proxy servers with health checking and automatic rotation
+6. **Wayback Machine** — retrieves archived content from web.archive.org
+7. **hfy.foundation** — indexed content from the hfy.foundation community project
 
-| Component | Technology |
-|-----------|-----------|
-| Framework | Next.js 16.1.3 (standalone output) |
-| Language | TypeScript 5 |
-| UI Library | React 19 |
-| Styling | Tailwind CSS 4 |
-| Components | shadcn/ui (new-york) |
-| State | Zustand 5 (persisted) |
-| Animation | Framer Motion 12 |
-| Database | Prisma + SQLite |
-| Reddit | RSS scraping + OAuth 2.0 PKCE |
-| Mobile | Capacitor 8 |
-| Package Manager | Bun / npm |
-| Icons | lucide-react + custom PNG icons |
+**REHASH** fetches all chapters in a series in batches. Batch size is configurable via the C-FETCH Batch Size slider in Settings (1–500, default 5). A one-second delay between batches helps avoid rate limiting.
 
----
+**CONTINUE** first fetches any unfetched chapters, then crawls forward from the last known chapter to discover new chapters by following "next chapter" links via Reddit search.
 
-## Project Structure
+**STOP** cancels an in-progress fetch using `AbortController` to immediately terminate the HTTP connection.
 
-```
-hfy-nekrocodexxx/
-├── src/
-│   ├── app/
-│   │   ├── layout.tsx          # Root layout (27 Google Fonts)
-│   │   ├── page.tsx            # Main app (splash, router, background)
-│   │   ├── globals.css         # Tailwind styles
-│   │   ├── reddit-callback/    # OAuth callback
-│   │   └── api/                # API routes
-│   ├── components/
-│   │   ├── cyber/              # Custom cyberpunk components
-│   │   ├── screens/            # 6 main screens
-│   │   ├── ui/                 # shadcn/ui components
-│   │   └── InAppBrowser.tsx
-│   └── lib/
-│       ├── stores.ts           # Zustand stores
-│       ├── read-tracker.ts     # Read tracking
-│       ├── idb-cache.ts        # IndexedDB cache
-│       ├── reddit-scraper.ts   # Reddit scraper
-│       ├── hardcoded-data/     # 22 chunk files (5,533 series)
-│       └── ...
-├── public/                     # Icons, backgrounds, PWA manifest
-├── android/                    # Capacitor Android project
-├── mobile-web/                 # Splash page for APK
-├── next.config.ts
-├── package.json
-└── capacitor.config.ts
-```
+User-Agent strings are rotated across 8 browser profiles (Chrome, Firefox, Safari, Edge on Windows, macOS, and Linux) to reduce fingerprinting.
 
----
+### Auto-Discover Pipeline
 
-## Forking & Improving
+When a series has no cached chapters or requires re-discovery, the auto-discover pipeline executes the following stages in sequence:
 
-This project is open for forking. Here are suggestions for how the community can improve it:
+1. **Cache** — check for locally cached chapter lists
+2. **Wayback Machine** — retrieve archived wiki page
+3. **hfy.foundation** — search the indexed database
+4. **BFS Crawl** — follow "next" links via RSS from a known starting chapter
+5. **Wayback Crawl** — BFS using archived Reddit pages
+6. **Reddit JSON** — fetch and parse the wiki page JSON
+7. **Reddit Search** — search r/HFY for the series name
+8. **WebSocket Parser** — connect to a WebSocket-based crawler service
 
-### Improve Chapter Discovery
-- **Pagination:** The Reddit search API returns max 100 results. Implement pagination to find all chapters for series with 1000+ posts
-- **Smart crawling:** Instead of searching, crawl from the last known chapter's "next chapter" link recursively
-- **User submission:** Let users paste a wiki page HTML and auto-extract chapter links
+Each stage can be enabled or disabled individually. Results are deduplicated by post ID and normalized URL.
 
-### Better Reader Features
-- **Text-to-speech** using the Web Speech API
-- **Reading statistics** (words read, time spent, chapters completed)
-- **Bookmarks** within chapters (save scroll position per chapter)
-- **Font import** from device storage
+### Multi-Account OAuth Rotation
 
-### Enhanced OAuth
-- **Automatic token refresh** before expiry (currently manual)
-- **OAuth callback server** — Run a tiny HTTP server on the device to catch the OAuth redirect automatically
+Reddit enforces API rate limits per account. The application supports connecting up to 9 Reddit accounts via OAuth, with automatic round-robin token rotation. Expired tokens are skipped (with a 5-minute buffer). Cookie-injected accounts are excluded from OAuth rotation and use a separate fetch path.
 
-### Performance
-- **Service Worker caching** for chapter content
-- **Virtual scrolling** for chapter lists with 1000+ chapters
-- **Web Workers** for heavy parsing
+Supported login methods:
 
-### UI/UX
-- **Reading streaks and gamification** (daily reading goals, streak counter)
-- **Series recommendations** based on reading history
-- **Comment viewer** — Read Reddit comments in-app alongside the chapter
-- **Tag system** — User-defined tags for organizing series
+1. **OAuth (PKCE)** — standard authorization code flow with PKCE
+2. **System browser + Google** — OAuth flow opened in the system browser for Google sign-in support
+3. **Real browser (Puppeteer)** — launches a visible Chrome or Edge instance for manual login, then captures session cookies
+4. **Direct login** — username and password
+5. **Cookie injection** — manual paste of Reddit session cookies
 
-### Data
-- **Export/Import library** — Backup and restore your reading progress
-- **Sync across devices** — Cloud sync of library and read progress
-- **Statistics dashboard** — Total chapters read, words consumed, time spent
+### Downloading and Merging
 
-### Contributing
-1. Fork the repository
-2. Create a feature branch: `git checkout -b feature/my-improvement`
-3. Build and test: `npm run build && npm run start`
-4. Submit a pull request with a clear description of what changed and why
+- **Individual download** — save a single chapter as EPUB (web) or TXT (Android native)
+- **Download all** — save every chapter in a series
+- **Merge** — combine all chapters into a single EPUB or TXT file
+- **Merge safety check** — merge is blocked if any chapters have not been c-fetched or downloaded, preventing incomplete output files
+- Downloading a chapter also fetches and caches its upvote score
 
-### Data Updates
-The baked series data (5,533 series in 22 chunk files) was parsed from CSV/JSON exports. To update with newer chapters:
-1. Export the r/HFY wiki page to CSV/JSON
-2. Run the parse script: `python3 scripts/parse-csvs.py`
-3. Rebuild the chunk files
-4. Rebuild the app: `npm run build`
+Downloaded files are named with zero-padded chapter numbers (e.g., `001. Series Name - Chapter Title.epub`) for correct sort order.
+
+**Reminder:** Downloaded and merged files are for personal use only. See the Legal Notice above.
+
+### Library Management
+
+- **Favorites** — star series to add them to the Favorites filter; favorites persist across restarts
+- **Read tracking** — chapters are automatically marked as read when opened; progress bars display per-series completion
+- **Downloaded count** — each series card displays the count of locally downloaded chapters
+- **Real chapter counts** — cards display the actual chapter count (hardcoded plus crawled), not just the baseline
+- **Sorting** — by name, progress, chapter count, or upvotes
+
+### Themed Interface
+
+The interface uses a dark, neon cyberpunk aesthetic. Each series is assigned a stable accent color derived from its ID, so the same series is always rendered with the same color regardless of sort order or position.
+
+All confirmation dialogs, warnings, and error messages use the themed popup system rather than native browser dialogs.
+
+### Android Background Service
+
+On Android, the application runs as a foreground service to prevent the operating system from terminating the Node.js process:
+
+- **WiFi lock** — `WIFI_MODE_FULL_HIGH_PERF` keeps the WiFi radio in maximum-throughput mode
+- **Wake lock** — `PARTIAL_WAKE_LOCK` keeps the CPU active when the screen is off
+- **250 kbps keepalive** — downloads and uploads 250 KB per second to maintain network activity
+- **Auto-restart** — if the Node.js process exits unexpectedly, it is restarted after a 3-second delay
+- **Service restart** — if the foreground service is killed, it is restarted via `onTaskRemoved`, `onDestroy`, and `START_STICKY`
+
+### Port Conflict Protection
+
+If the server auto-restarts before the previous process has fully released port 3000, the new instance detects the conflict, waits 5 seconds, and retries. If the port remains in use, the process exits cleanly and is restarted by the NodeRunner.
+
+### Persistence Model
+
+All data is stored on the server filesystem at `HFY_DATA_DIR/hfy-data/`:
+
+- `app-store/` — key-value store for library, settings, scores, and download records
+- `user-chapters/` — imported and crawled chapter lists
+- `chapter-cache/` — fetched chapter content
+
+On Android, this directory is `getFilesDir()/hfy-data/`, which is persistent and not cleared by the system. On Windows, it is `./hfy-data/` adjacent to the executable.
+
+The Zustand state stores use a three-tier persistence pattern:
+
+1. **localStorage** — fast, synchronous reads (cleared on Android restart)
+2. **Cookies** — persists across restarts but limited to 4 KB (not used in current build)
+3. **Server filesystem** — durable, unlimited size, the authoritative source of truth
+
+On startup, if localStorage is empty, the application asynchronously restores state from the server via `/api/store/[key]`.
 
 ---
 
-## ⚠️ Warning to Forkers
+## Installation
 
-**DO NOT add downloading, exporting, or file-saving features to this application.**
+### Option 1: Android APK
 
-The r/HFY community is sustained by reader engagement on Reddit — upvotes, comments, and views motivate authors to continue writing. Tools that extract content from Reddit:
+1. Download the APK file.
+2. **Uninstall any previous version first** — different versions may be signed with different keys.
+3. Enable installation from unknown sources in Android settings.
+4. Install the APK.
+5. Open the application. The server starts automatically.
+6. Wait 10–30 seconds for the chapter data to load on first launch.
+7. The WebView loads `http://localhost:3000` automatically.
 
-- **Reduce engagement** — Readers consume content off-platform instead of on Reddit
-- **Discourage authors** — Writers see fewer upvotes and comments, leading to abandoned stories
-- **Harm the community** — Fewer active writers means fewer new stories for everyone
-- **May violate Reddit's Terms of Service** — Automated scraping and redistribution can result in IP bans
+**APK contents:**
 
-This app is designed as a **reader and organizer only**. Chapter content is fetched fresh from Reddit on each read, ensuring authors get the views and engagement they deserve. 
+- Native Node.js binary (ARM64)
+- Complete Next.js webapp
+- 10 native libraries (libsqlite3, libssl, libcrypto, ICU, c-ares, etc.)
+- Java bridge (NodeRunner, NodeForegroundService, MainActivity)
+- 250 kbps WiFi lock and auto-restart on crash
+- Foreground service with permanent wake lock
+- All 72,248 chapters bundled
 
-**Adding download features would cause grave and severe harm to the HFY community. Please don't do it. I don't approve it, the community doesn't approve it, doing so will gravely harm the community**
+**Permissions requested:**
+
+- `INTERNET`, `ACCESS_WIFI_STATE` — network access and WiFi lock
+- `FOREGROUND_SERVICE_DATA_SYNC` — Android 14+ foreground service type
+- `WAKE_LOCK` — CPU wake lock
+- `MANAGE_EXTERNAL_STORAGE` — file access for downloads
+- `REQUEST_IGNORE_BATTERY_OPTIMIZATIONS` — battery optimization bypass
+- `VIBRATE` — haptic feedback on long-press
+
+### Option 2: Windows
+
+1. Download the ZIP file.
+2. Extract to any folder.
+3. Double-click `HFY-NEKROCODEXXX.cmd`.
+4. A console window opens. Wait 10–30 seconds for the server to initialize.
+5. A standalone window opens via Chrome or Edge in `--app` mode (no browser chrome, similar to a native application).
+6. If neither Chrome nor Edge is installed, the application falls back to the system default browser.
+
+**ZIP contents:**
+
+- `node.exe` — Node.js runtime
+- `HFY-NEKROCODEXXX.cmd` — launcher script
+- `server/` — the complete webapp
+- `start.bat` — alternative launcher
+- `README.txt` — quick start guide
+
+**If the launcher does not open:**
+
+- If antivirus or SmartScreen blocks execution, select "More info" then "Run anyway."
+- Use `start.bat` as an alternative — it runs the server directly.
+- The `server/` folder must be in the same directory as the launcher.
+
+### Option 3: Webapp (any operating system with Node.js)
+
+1. Download the webapp ZIP.
+2. Extract it.
+3. Open a terminal in the `server/` directory.
+4. Run: `node server.js`
+5. Open `http://localhost:3000` in a browser.
+
+No `npm install`, build step, or configuration is required. All dependencies are bundled.
+
+---
+
+## Usage
+
+### Browsing Series
+
+The Browse tab displays all 5,393 series. Each card shows:
+
+- Series title and author
+- Total chapter count (including crawled chapters)
+- Downloaded chapter count
+- Total upvotes across c-fetched chapters
+- Source indicators (hardcoded, crawled, hfy.foundation, custom)
+- Merge indicator if a merged file exists
+
+Sort by name, chapter count, upvotes, or progress. Search by title or author. Long-press a card to add the series to your Library.
+
+### Reading Chapters
+
+Tap any series to open the detail view, which includes the synopsis, source links, and the chapter list. Each chapter row displays the chapter number, title, upvote count (or skull icon if not yet fetched), read/unread status, download status, author, and word count.
+
+Tap a chapter to open the reader. The reader automatically fetches content from Reddit, caches it for offline reading, saves the upvote score, marks the chapter as read, and supports swipe navigation, font controls, theme selection, and chapter preloading.
+
+### C-FETCH Operations
+
+- **Single chapter:** tap the skull icon to fetch that chapter.
+- **REHASH:** fetch all chapters in the series in batches. Progress is shown as "done/total." Click STOP to abort.
+- **CONTINUE:** fetch unfetched chapters, then crawl forward to discover new chapters.
+- **Batch size:** adjustable in Settings (1–500, default 5). Lower values are safer for rate limits; higher values are faster.
+
+### Downloading and Merging
+
+- Tap the download icon on a chapter to save it as EPUB or TXT.
+- Downloading also c-fetches the chapter.
+- Long-press to enter selection mode and choose specific chapters.
+- Use the merge button to combine all chapters into a single file.
+- Merge is blocked until all chapters have been fetched or downloaded.
+
+### Library
+
+The Library tab displays your saved series with the following filters: All, Favorites, Reading, Downloaded, Local, Recent. Sort options include A-Z, Progress, Chapters, Upvotes.
+
+### Settings
+
+**Reader settings:**
+- Font size, font family, color theme
+- Chapter preload count (1–100)
+
+**Download settings:**
+- Parallel download count (1–1000)
+- C-FETCH batch size (1–500)
+
+**Reddit accounts:**
+- OAuth login (PKCE)
+- System browser login (Google support)
+- Real browser login (Puppeteer with Chrome/Edge)
+- Direct login (username and password)
+- Cookie injection
+- QPM (queries per minute) display
+
+**Downloader cascade:**
+- Tier B: User OAuth (600 QPM, NSFW access)
+- Tier A: App-only OAuth (100 QPM, public content)
+- Tier R: Authless JSON (no OAuth, browser UA)
+- Fallback: easy-reddit-downloader and CORS proxy pool
+- Wayback Machine
+
+---
+
+## Architecture
+
+### Build Configuration
+
+The webapp is a Next.js 16 standalone application. Build settings:
+
+- `output: "standalone"` — self-contained server
+- `swcMinify: false` — prevents TDZ errors
+- `webpack.optimization.minimize: false` — same
+- `typescript.ignoreBuildErrors: true` — ships despite TypeScript errors
+
+The 72,248 chapters are distributed across 22 chunk files loaded into memory at startup.
+
+### Android APK Construction
+
+The APK wraps the webapp in a native Android shell:
+
+1. Node.js binary for ARM64, executed via `linker64`
+2. Java bridge: `MainActivity` (WebView host), `NodeForegroundService` (wake lock, WiFi lock, keepalive), `NodeRunner` (process management, auto-restart)
+3. 250 kbps WiFi lock (250 KB download + 250 KB upload per second)
+4. Auto-restart with 3-second delay and `keepRunning` / `userRequestedStop` flags
+5. Persistent storage at `getFilesDir()/hfy-data/`
+
+The APK is built by taking a base APK, replacing `assets/server/` (stored uncompressed with `zip -0`), zip-aligning, and signing with `apksigner` (v2 + v3).
+
+### Windows Launcher
+
+The Windows package uses `node.exe` with a `.cmd` launcher script. The launcher starts the server, waits for it to be ready, then opens a standalone Chromium window via the `--app` flag. If Chrome or Edge is not available, the system default browser is used.
+
+### Aggregation Script
+
+`aggregate-counts.js` runs on startup and every 120 seconds:
+
+- Scans `app-store/hfy-downloaded-*.json` for downloaded chapter counts
+- Scans `user-chapters/*.json` for real chapter counts
+- Posts aggregated data to `/api/store/hfy-downloaded-counts` and `/api/store/hfy-chapter-counts`
+
+The script uses `http.request()` rather than `fetch()` because `fetch` is not available in the Android Node.js runtime context.
+
+---
+
+## API Reference
+
+| Endpoint | Method | Description |
+|----------|--------|-------------|
+| `/api/store/[key]` | GET/POST/DELETE | Generic key-value store |
+| `/api/store-scores-all` | GET | All series scores |
+| `/api/proxy-browser` | GET/POST/DELETE | HTTP proxy and browser session |
+| `/api/proxy-browser?action=browser-session` | GET/POST/DELETE | Real browser login |
+| `/api/proxy-stats` | GET | Proxy statistics |
+| `/api/series` | GET | Series list |
+| `/api/series/[slug]` | GET | Series detail |
+| `/api/series/[slug]/chapters` | GET/POST/DELETE | Chapter CRUD |
+| `/api/series/[slug]/fetch-cache` | POST | C-FETCH (NDJSON stream) |
+| `/api/series/[slug]/continue-fetch` | POST | Continue crawl |
+| `/api/chapter/[id]` | GET | Chapter content |
+| `/api/download` | POST | Download chapters |
+| `/api/reddit-auth` | GET | Reddit OAuth |
+| `/api/reddit-cookies` | GET/POST | Cookie management |
+| `/api/reddit-multi-token` | GET/POST | Token rotation |
+| `/api/purge-cache` | POST | Purge cache |
+
+---
+
+## Troubleshooting
+
+**Android: "App not installed"**
+Uninstall the previous version first. Different versions may use different signing keys.
+
+**Android: "net::ERR_CONNECTION_REFUSED"**
+The server crashed. v250fx3 and later fix this: `aggregate-counts.js` uses `http.request` instead of `fetch`, and `server.js` includes port conflict protection.
+
+**Windows: Launcher does not open**
+Use `start.bat` as an alternative. Verify that the `server/` folder is in the same directory as the launcher.
+
+**Windows: No standalone window**
+Install Chrome or Edge. The `--app` flag requires a Chromium-based browser.
+
+**REHASH appears stuck**
+Set C-FETCH Batch Size to 5 in Settings. v250fx3 and later fetch in batches with progress reporting.
+
+**STOP does not work**
+Fixed in v250fx3. The STOP button now uses `AbortController` to cancel the HTTP connection.
+
+**Rename SAVE does not work**
+Fixed in v250fx3. The rename state is now included in the dependency array.
+
+**Favorites lost on restart**
+Fixed in v250. The `serverWrite` function was renamed to `serverWriteReadChapters` to prevent variable shadowing.
+
+**Cards show 0**
+Wait 120 seconds for the aggregation script to run. Verify `/api/store/hfy-downloaded-counts` returns data.
+
+**Merge blocked**
+All chapters must be c-fetched or downloaded before merging. Read or download all chapters, then merge.
+
+---
+
+## Source Code
+
+The full source code is included in every distribution ZIP. This includes `server.js`, `aggregate-counts.js`, all API routes, the stores chunk, the Reddit scraper, the page chunk, all public assets, and all `node_modules`.
+
+Three recreation manuals are available with complete source code and step-by-step build instructions:
+
+- Webapp manual
+- APK manual
+- Windows EXE manual
+
+To modify client code, edit the page chunk directly at `.next/static/chunks/app/page-*.js`. The code is bundled but not minified, so it remains readable.
+
+To modify server code, edit route files in `.next/server/app/api/`.
+
+To add a new API route, either rebuild from source or piggyback on an existing route with a `?action=` parameter. New routes will not be recognized without a rebuild because Next.js only registers routes present at build time.
+
+---
+
+## Modification and Extension
+
+This project is open for modification. Suggested areas for improvement:
+
+- Support for additional subreddits (r/nosleep, r/WritingPrompts, etc.)
+- Improved offline mode with pre-download of complete series
+- Cross-device sync via export and import of the data directory
+- Enhanced crawler with machine learning for "next chapter" detection
+- Additional themes, including light mode
+- Text-to-speech for chapters
+- Annotation and highlighting
+- Reading progress sync across devices
+
+**Technology stack:** Next.js 16, React 18, Zustand, Tailwind CSS, Puppeteer-Core, Capacitor, Java, libnode.so, SQLite, IndexedDB, NDJSON.
+
+---
+
+## Credits
+
+**Developer:** Mahmudul Hossain
+
+This application was built because reading serial fiction on the Reddit mobile client is a poor experience, and existing alternatives either do not support offline reading or require accounts. This application does neither.
 
 ---
 
 ## License
 
-This project is provided as-is for personal use. The series data is sourced from publicly available Reddit content. Reddit is a trademark of Reddit Inc. This project is not affiliated with or endorsed by Reddit.
+The application code is provided for personal use and modification. You are free to modify, extend, and rebuild the application for your own use.
 
-## Credits
+The content accessed through the application (stories, chapters, and associated text) is owned by the original authors who posted it to r/HFY. No rights to the content are granted by this application beyond the personal reading access described in the Legal Notice above.
 
-- **r/HFY community** — For writing and maintaining the stories
-- **HFY Foundation** — Community-maintained story index
-- **RedReader** (QuantumBadger) — UI inspiration
+Redistribution of the application itself, with or without modification, is permitted provided that this README, including the Legal Notice, is included unmodified.
+
+---
+
+*HFY NEKROCODEXXX — Cyberdeck v250fx4. Read stories. Cache content. Respect authors.*
