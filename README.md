@@ -2,40 +2,10 @@
 
 A standalone, self-hosted reader and ebook maker for serialized fiction published on Reddit. What started as a dedicated reader for r/HFY has grown into a general-purpose tool that can fetch story updates from any subreddit, build offline archives from JSONL data dumps, and export complete series as EPUB ebooks for personal use.
 
----
-
-![Version](https://img.shields.io/badge/version-FX45v31-FF003C?style=for-the-badge)
-![Platform](https://img.shields.io/badge/platform-Android%20%7C%20Windows%20%7C%20Web-00FFF0?style=for-the-badge)
-![Chapters](https://img.shields.io/badge/chapters-72%2C248-FFE600?style=for-the-badge)
-![Series](https://img.shields.io/badge/series-5%2C533-9D00FF?style=for-the-badge)
-![CORS Proxies](https://img.shields.io/badge/CORS%20proxies-386-00FF88?style=for-the-badge)
-![License](https://img.shields.io/badge/license-Personal%20Use-FF8800?style=for-the-badge)
 
 ---
 
-## Table of Contents
 
-- [What Is This](#what-is-this)
-- [How the App Evolved](#how-the-app-evolved)
-- [How It Works](#how-it-works)
-- [Features](#features)
-- [Platform Support](#platform-support)
-- [Quick Start](#quick-start)
-- [How to Add JSONL Files](#how-to-add-jsonl-files)
-- [Where to Get JSONL Files](#where-to-get-jsonl-files)
-- [Using the App with Other Subreddits](#using-the-app-with-other-subreddits)
-- [Creating Ebooks](#creating-ebooks)
-- [How the Android APK Was Built](#how-the-android-apk-was-built)
-- [How the App Was Made](#how-the-app-was-made)
-- [Credits and Acknowledgments](#credits-and-acknowledgments)
-- [Known Bugs and Call for Contributors](#known-bugs-and-call-for-contributors)
-- [Forking and Personal Use](#forking-and-personal-use)
-- [Legal Notice — Ebook Distribution Prohibited](#legal-notice--ebook-distribution-prohibited)
-- [System Requirements](#system-requirements)
-- [Troubleshooting](#troubleshooting)
-- [API Reference](#api-reference)
-- [Configuration](#configuration)
-- [File Structure](#file-structure)
 
 ---
 
