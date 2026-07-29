@@ -752,7 +752,7 @@ This app is a personal project built by one person. It has bugs. I am aware of t
 
 6. **Android folder picker duplicates** — On some Android devices, the native folder picker can create duplicate folders with "(1)" suffixes when writing files. The app has a workaround, but it may not work on all devices.
 
-7. **OCS (Out of Cruel Space) chapter gaps** — The old Reddit search returns limited results, so some chapters in very long series (1700+ chapters) may not be discovered. The JSONL archive integration fixes this, but only if the JSONL file contains those chapters.
+7. ** chapter gaps** — The old Reddit search returns limited results, so some chapters in very long series (1700+ chapters) may not be discovered. The JSONL archive integration fixes this, but only if the JSONL file contains those chapters.
 
 8. **Hardcoded paths** — Some paths in the server code are hardcoded to specific directories. These may need adjustment when running on non-standard configurations.
 
